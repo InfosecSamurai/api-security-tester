@@ -1,1 +1,22 @@
-
+{
+  "sql_injection": {
+    "test_payloads": ["test_payload"]
+  },
+  "xss": {
+    "test_payloads": ["<script>test</script>"]
+  },
+  "broken_auth": {
+    "auth_endpoints": {
+      "login": "/test_login",
+      "protected": "/test_protected"
+    }
+  },
+  "sensitive_data": {
+    "endpoints": ["/test_endpoint"]
+  },
+  "rate_limiting": {
+    "test_endpoint": "/test_rate_limit",
+    "max_requests": 10,
+    "threshold_seconds": 1
+  }
+}
