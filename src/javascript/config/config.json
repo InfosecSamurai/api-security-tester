@@ -1,0 +1,42 @@
+{
+    "sql_injection": {
+        "test_payloads": [
+            "' OR '1'='1",
+            "' OR 1=1--",
+            "admin'--",
+            "1' ORDER BY 1--",
+            "1' UNION SELECT null, username, password FROM users--"
+        ]
+    },
+    "xss": {
+        "test_payloads": [
+            "<script>alert('XSS')</script>",
+            "<img src=x onerror=alert('XSS')>",
+            "\"><script>alert('XSS')</script>",
+            "javascript:alert('XSS')"
+        ]
+    },
+    "broken_auth": {
+        "auth_endpoints": {
+            "login": "/login",
+            "protected": "/admin"
+        },
+        "test_credentials": [
+            { "username": "admin", "password": "admin" },
+            { "username": "user", "password": "password" }
+        ]
+    },
+    "sensitive_data": {
+        "endpoints": [
+            "/users",
+            "/profile",
+            "/account",
+            "/api/data"
+        ]
+    },
+    "rate_limiting": {
+        "test_endpoint": "/api/data",
+        "max_requests": 100,
+        "threshold_seconds": 10
+    }
+}
