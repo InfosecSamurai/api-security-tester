@@ -1,17 +1,41 @@
+general:
+  timeout_seconds: 10
+  verify_ssl: true
+  allow_redirects: true
+  user_agent: "api-security-tester/1.0"
+  headers: {}
+
+tests:
+  sql_injection: true
+  xss: true
+  broken_auth: true
+  sensitive_data: true
+  rate_limiting: true
+
 sql_injection:
+  test_endpoint: ""
+  parameter: "input"
   test_payloads:
+    - "'"
+    - "\""
     - "' OR '1'='1"
     - "' OR 1=1--"
-    - "admin'--"
-    - "1' ORDER BY 1--"
-    - "1' UNION SELECT null, username, password FROM users--"
+  error_signatures:
+    - "sql syntax"
+    - "mysql"
+    - "postgresql"
+    - "sqlite"
+    - "odbc"
+    - "ora-"
+    - "syntax error"
+    - "unterminated quoted string"
 
 xss:
+  test_endpoint: ""
+  parameter: "input"
   test_payloads:
-    - "<script>alert('XSS')</script>"
-    - "<img src=x onerror=alert('XSS')>"
-    - "\"><script>alert('XSS')</script>"
-    - "javascript:alert('XSS')"
+    - "<script>alert('xss')</script>"
+    - "\"><svg/onload=alert('xss')>"
 
 broken_auth:
   auth_endpoints:
@@ -22,15 +46,27 @@ broken_auth:
       password: "admin"
     - username: "user"
       password: "password"
+  success_indicators:
+    - "token"
+    - "access_token"
+    - "jwt"
+    - "session"
 
 sensitive_data:
   endpoints:
     - "/users"
     - "/profile"
     - "/account"
-    - "/api/data"
+  patterns:
+    password: "password"
+    api_key: "api[_-]?key"
+    secret: "secret"
+    token: "access[_-]?token|refresh[_-]?token|bearer"
+    ssn: "\\b\\d{3}-\\d{2}-\\d{4}\\b"
+    credit_card: "\\b(?:\\d[ -]*?){13,16}\\b"
 
 rate_limiting:
   test_endpoint: "/api/data"
-  max_requests: 100
+  max_requests: 20
   threshold_seconds: 10
+  delay_seconds: 0.05
