@@ -1,142 +1,142 @@
-# API Security Tester 🔒
+# API Security Tester
 
-![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
-![Node.js](https://img.shields.io/badge/node.js-16+-green.svg)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-InfosecSamurai-FFDD00)](https://www.buymeacoffee.com/InfosecSamurai)
+A lightweight REST API security scanner for authorized testing. The Python implementation is the maintained path in this repository. The JavaScript implementation remains available as an experimental mirror.
 
-A comprehensive security testing tool for RESTful APIs that identifies common vulnerabilities including SQLi, XSS, broken authentication, and more. Available in both Python and JavaScript implementations.
+## What It Checks
 
-## Features 🚀
+- SQL injection error disclosure and unstable server responses
+- Reflected XSS payloads in API responses
+- Weak/default login credentials
+- Unauthenticated access to a configured protected endpoint
+- Sensitive data exposure in unauthenticated responses
+- Missing or weak rate limiting through bounded request bursts
 
-- **SQL Injection Testing** - Detects SQLi vulnerabilities with multiple payloads
-- **Cross-Site Scripting (XSS)** - Tests for reflected/stored XSS vulnerabilities
-- **Broken Authentication** - Checks for weak credentials and session issues
-- **Sensitive Data Exposure** - Identifies unprotected sensitive data
-- **Rate Limiting** - Verifies API rate limiting protections
-- **Dual Implementation** - Choose between Python or JavaScript version
-- **Detailed Reporting** - JSON reports with vulnerability details
+## Safety Notice
 
-## Installation ⚙️
+Only run this tool against APIs you own or have explicit permission to test. The scanner sends test payloads and request bursts that may be disruptive on fragile systems.
 
-### Python Version
+## Install
+
 ```bash
 git clone https://github.com/InfosecSamurai/api-security-tester.git
 cd api-security-tester
+python -m venv .venv
+
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+
+# macOS/Linux
+source .venv/bin/activate
+
 pip install -r requirements.txt
+pip install pytest
 ```
 
-### JavaScript Version
+## Basic Usage
+
 ```bash
-git clone https://github.com/InfosecSamurai/api-security-tester.git
-cd api-security-tester/src/javascript
-npm install
+python src/python/main.py --target https://example.com/api
 ```
 
-## Usage 🛠️
+The scanner writes reports to `reports/` by default:
 
-### Basic Scan
+- `api_scan_report_<timestamp>.json`
+- `api_scan_report_<timestamp>.md`
+
+The CLI exits with:
+
+- `0` when no findings are detected
+- `1` when findings are detected
+- `2` when configuration or target validation fails
+
+## Custom Config
+
 ```bash
-# Python
-python src/python/main.py --target http://example.com/api
-
-# JavaScript
-node src/javascript/index.js --target http://example.com/api
+python src/python/main.py \
+  --target https://example.com/api \
+  --config src/python/config/config.yaml \
+  --output ./reports
 ```
 
-### Advanced Options
-```bash
-# Custom config file
-python src/python/main.py --target http://example.com/api --config custom_config.yaml
+Core config options:
 
-# Specify output directory
-node src/javascript/index.js --target http://example.com/api --output ./custom_reports
-```
-
-## Configuration ⚙️
-
-Modify the config files to customize tests:
-- Python: `src/python/config/config.yaml`
-- JavaScript: `src/javascript/config/config.json`
-
-Example configuration:
 ```yaml
-# Python config.yaml
+general:
+  timeout_seconds: 10
+  verify_ssl: true
+  allow_redirects: true
+  user_agent: "api-security-tester/1.0"
+  headers: {}
+
+tests:
+  sql_injection: true
+  xss: true
+  broken_auth: true
+  sensitive_data: true
+  rate_limiting: true
+```
+
+Each module can be configured in `src/python/config/config.yaml`.
+
+## Example Target-Specific Config
+
+```yaml
+general:
+  headers:
+    Authorization: "Bearer YOUR_TEST_TOKEN"
+
 sql_injection:
-  test_payloads:
-    - "' OR 1=1--"
-    - "admin'--"
+  test_endpoint: "/search"
+  parameter: "q"
+
+xss:
+  test_endpoint: "/search"
+  parameter: "q"
+
+broken_auth:
+  auth_endpoints:
+    login: "/auth/login"
+    protected: "/admin"
+  test_credentials:
+    - username: "admin"
+      password: "admin"
+
+sensitive_data:
+  endpoints:
+    - "/users"
+    - "/profile"
+
+rate_limiting:
+  test_endpoint: "/login"
+  max_requests: 20
+  threshold_seconds: 10
+  delay_seconds: 0.05
 ```
 
-## Sample Report 📊
-
-Reports are generated in JSON format:
-```json
-{
-  "target": "http://example.com/api",
-  "timestamp": "2023-11-15T14:30:00Z",
-  "vulnerabilities": [
-    {
-      "name": "SQL Injection",
-      "severity": "High",
-      "results": [
-        {
-          "payload": "' OR 1=1--",
-          "status_code": 200,
-          "vulnerable": true
-        }
-      ]
-    }
-  ]
-}
-```
-
-## Supported Tests 🛡️
-
-| Test Type               | Python | JavaScript | Severity |
-|-------------------------|--------|------------|----------|
-| SQL Injection           | ✅     | ✅         | High     |
-| XSS                     | ✅     | ✅         | Medium   |
-| Broken Authentication   | ✅     | ✅         | High     |
-| Sensitive Data Exposure | ✅     | ✅         | High     |
-| Rate Limiting           | ✅     | ✅         | Medium   |
-
-## Contributing 🤝
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/fooBar`)
-3. Commit your changes (`git commit -am 'Add some fooBar'`)
-4. Push to the branch (`git push origin feature/fooBar`)
-5. Create a new Pull Request
-
-## Running Tests 🧪
+## Run Tests
 
 ```bash
-# Python tests
 pytest src/python/tests/
+```
 
-# JavaScript tests (from src/javascript)
+## JavaScript Version
+
+The JavaScript implementation is still present under `src/javascript`, but the Python scanner is currently the more complete maintained implementation.
+
+```bash
+cd src/javascript
+npm install
+node index.js --target https://example.com/api
 npm test
 ```
 
-## Security Considerations ⚠️
+## Recommended Next Improvements
 
-- Only use on systems you have permission to test
-- Some tests may cause disruption to services
-- Review payloads before using in production environments
+- Add OpenAPI/Swagger parsing so endpoints and parameters are discovered automatically
+- Add authentication profiles for API keys, bearer tokens, cookies, and basic auth
+- Add CI workflow for Python tests
+- Expand JavaScript parity or remove it to reduce maintenance overhead
 
-## License 📜
+## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
-
-## Support the Project ☕
-
-If you find this tool useful, consider supporting my work:
-
-[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/InfosecSamurai)
-
-Your support helps me maintain and improve this tool!
-
----
-
-**Created by Infosec Samurai** - Making APIs safer one test at a time 🔐
+MIT
